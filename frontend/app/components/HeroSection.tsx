@@ -42,26 +42,26 @@ const ModuleNavigation = () => {
     ];
 
     return (
-        <div className="absolute top-24 left-4 z-30">
-            <div className="flex flex-col gap-4">
+        <div className="absolute top-24 left-4 z-30 sm:left-6 lg:left-8">
+            <div className="flex flex-col gap-2 sm:gap-4">
                 {modules.map((module) => (
                     <button
                         key={module.id}
-                        className="flex items-center gap-3 hover:bg-slate-800/50 rounded-lg transition-all px-3 py-2"
+                        className="flex items-center gap-2 sm:gap-3 hover:bg-slate-800/50 rounded-lg transition-all px-2 sm:px-3 py-1 sm:py-2"
                         onClick={() => setActiveModule(module.id === activeModule ? null : module.id)}
                     >
-                        <span className={`w-3 h-3 rounded-full ${module.color}`}></span>
-                        <span className="text-white font-medium">{module.name}</span>
+                        <span className={`w-2 sm:w-3 h-2 sm:h-3 rounded-full ${module.color}`}></span>
+                        <span className="text-white text-sm sm:text-base font-medium">{module.name}</span>
                     </button>
                 ))}
             </div>
 
             {activeModule && (
-                <div className="mt-3 bg-slate-800/90 backdrop-blur-sm p-4 rounded-lg shadow-lg max-w-xs ml-6">
-                    <h3 className="text-white font-bold mb-2">
+                <div className="mt-3 bg-slate-800/90 backdrop-blur-sm p-3 sm:p-4 rounded-lg shadow-lg max-w-[180px] sm:max-w-xs ml-4 sm:ml-6">
+                    <h3 className="text-white text-sm sm:text-base font-bold mb-1 sm:mb-2">
                         {modules.find(m => m.id === activeModule)?.name}
                     </h3>
-                    <p className="text-slate-300 text-sm">
+                    <p className="text-slate-300 text-xs sm:text-sm">
                         {activeModule === 'pollutrack' && 'Real-time air/water pollution tracking using IoT sensors and satellite data.'}
                         {activeModule === 'agriai' && 'Crop health monitoring, rainfall prediction, and pest warnings for farmers.'}
                         {activeModule === 'ecowatch' && 'Wildlife tracking via satellites, drones, and ground sensors.'}
@@ -96,46 +96,48 @@ const HeroSection = () => {
             {/* Blue border at the top */}
             <div className="absolute top-0 left-0 right-0 h-1 bg-blue-600 z-20"></div>
 
-            {/* Globe visualization */}
-            <div className="absolute inset-0 z-10">
-                <Globe3D />
+            {/* Globe visualization - Improved positioning */}
+            <div className="absolute inset-0 z-10 flex items-center justify-center">
+                <div className="w-full h-full max-w-screen-lg mx-auto">
+                    <Globe3D />
+                </div>
             </div>
 
             {/* Module Navigation System */}
             <ModuleNavigation />
 
             {/* Content overlay */}
-            <div className="relative z-20 container mx-auto h-full flex flex-col justify-center px-6 lg:px-16">
-                <div className={`max-w-3xl transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+            <div className="relative z-20 container mx-auto h-full flex flex-col justify-center px-4 sm:px-6 lg:px-8">
+                <div className={`max-w-xl sm:max-w-2xl lg:max-w-3xl transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
                     {/* Headline */}
-                    <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-4">
+                    <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-2 sm:mb-4">
                         <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-400 via-blue-500 to-purple-600">
                             EarthOS:
                         </span> <br />
-                        A Decentralized Operating System for Our Planet
+                        <span className="leading-tight">A Decentralized Operating System for Our Planet</span>
                     </h1>
 
                     {/* Subheadline */}
-                    <h2 className="text-xl md:text-2xl text-slate-300 mb-6">
+                    <h2 className="text-lg sm:text-xl md:text-2xl text-slate-300 mb-4 sm:mb-6">
                         Monitor, optimize, and collaborate globally with real-time, decentralized data and AI-driven insights.
                     </h2>
 
                     {/* Description */}
-                    <p className="text-slate-400 mb-8 max-w-2xl">
+                    <p className="text-slate-400 mb-6 sm:mb-8 max-w-full text-sm sm:text-base">
                         EarthOS is an open-source, decentralized platform empowering humanity with a real-time "HUD" to track pollution, climate, wildlife, and more. Built on IPFS and governed by a DAO, it unites citizens, scientists, and governments in a transparent, community-driven mission for a sustainable future.
                     </p>
 
                     {/* Call to action buttons */}
-                    <div className="flex flex-col sm:flex-row gap-4">
+                    <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                         <Link
                             href="/explore"
-                            className="px-8 py-3 text-white bg-gradient-to-r from-teal-500 to-blue-600 rounded-full font-medium hover:shadow-lg hover:shadow-blue-500/20 transition-all duration-300"
+                            className="px-6 sm:px-8 py-2 sm:py-3 text-white text-sm sm:text-base bg-gradient-to-r from-teal-500 to-blue-600 rounded-full font-medium hover:shadow-lg hover:shadow-blue-500/20 transition-all duration-300"
                         >
                             Explore EarthOS Now
                         </Link>
                         <Link
                             href="/community"
-                            className="px-8 py-3 text-white bg-slate-800 border border-slate-700 rounded-full font-medium hover:bg-slate-700 transition-all duration-300"
+                            className="px-6 sm:px-8 py-2 sm:py-3 text-white text-sm sm:text-base bg-slate-800 border border-slate-700 rounded-full font-medium hover:bg-slate-700 transition-all duration-300"
                         >
                             Join the Decentralized Community
                         </Link>
@@ -148,7 +150,7 @@ const HeroSection = () => {
                 {Array.from({ length: 15 }).map((_, i) => (
                     <div
                         key={i}
-                        className="absolute w-2 h-2 rounded-full"
+                        className="absolute w-1 h-1 sm:w-2 sm:h-2 rounded-full"
                         style={{
                             top: `${Math.random() * 100}%`,
                             left: `${Math.random() * 100}%`,
