@@ -21,21 +21,21 @@ const ModuleRoadmap: React.FC = () => {
         {
             id: 'pollutrack',
             name: 'PolluTrack',
-            year: '2023',
+            year: '2025',
             color: 'bg-red-500',
             description: 'Real-time air/water pollution tracking using IoT sensors and satellite data.'
         },
         {
             id: 'agriai',
             name: 'AgriAI',
-            year: '2024',
+            year: '2026',
             color: 'bg-green-500',
             description: 'Crop health monitoring, rainfall prediction, and pest warnings for farmers.'
         },
         {
             id: 'ecowatch',
             name: 'EcoWatch',
-            year: '2025',
+            year: '2026',
             color: 'bg-yellow-500',
             description: 'Wildlife tracking via satellites, drones, and ground sensors.'
         },
