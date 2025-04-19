@@ -84,18 +84,35 @@ const Globe3D = () => {
             // Try to load textures if available
             const textureLoader = new THREE.TextureLoader();
             try {
-                const earthTexture = textureLoader.load('/earth-blue-marble.jpg',
+                textureLoader.load(
+                    '/earth-blue-marble.jpg',
                     // On successful load, update the material
                     (texture) => {
+                        console.log('Earth texture loaded successfully');
                         globeMaterial.map = texture;
                         globeMaterial.needsUpdate = true;
                     },
-                    undefined,
+                    // On progress
+                    (xhr) => {
+                        console.log(`Earth texture ${Math.floor(xhr.loaded / xhr.total * 100)}% loaded`);
+                    },
                     // On error, fallback silently to blue material
-                    (err) => console.log('Using default globe material')
+                    (err) => {
+                        console.error('Error loading Earth texture:', err);
+                        // Try alternative URL if first one fails
+                        textureLoader.load(
+                            '/images/earth-blue-marble.jpg',
+                            (texture) => {
+                                globeMaterial.map = texture;
+                                globeMaterial.needsUpdate = true;
+                            },
+                            undefined,
+                            (err2) => console.error('Failed to load backup texture as well:', err2)
+                        );
+                    }
                 );
             } catch (error) {
-                console.log('Error loading texture, using default globe material');
+                console.error('Error in texture loading process:', error);
             }
 
             // Create globe mesh
