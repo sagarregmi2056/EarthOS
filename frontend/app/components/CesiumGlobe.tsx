@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from 'react';
-import { Ion, Viewer, Entity, Cartesian3, Color } from 'cesium';
+import { Viewer, Ion, Cartesian3, Color } from 'cesium';
 import * as Cesium from 'cesium';
+import 'cesium/Build/Cesium/Widgets/widgets.css';
 
 // Define types for module data points
 interface DataPoint {
@@ -51,8 +52,9 @@ const CesiumGlobe = ({
 
     // Load Cesium access token
     useEffect(() => {
-        // Use provided token or a default (if you have one)
+        // Use provided token, environment variable, or a default
         Ion.defaultAccessToken = accessToken ||
+            process.env.NEXT_PUBLIC_CESIUM_TOKEN ||
             'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJlYWE1OWUxNy1mMWZiLTQzYjYtYTQ0OS1kMWFjYmFkNjc5YzciLCJpZCI6NTc3MzMsImlhdCI6MTYyMjY0NjQ5NH0.XcKpgANiY19MC4bdFUXMVEBToBmqS8kuYpUlxJHYZxk';
     }, [accessToken]);
 
@@ -60,95 +62,45 @@ const CesiumGlobe = ({
     useEffect(() => {
         if (!cesiumContainer.current || viewer) return;
 
-        // Initialize terrain asynchronously (to be added after viewer creation)
-        const initTerrainPromise = Cesium.createWorldTerrainAsync();
-
-        // Create viewer with minimal configuration to avoid type errors
-        // @ts-ignore - We need to use ts-ignore due to type inconsistencies between Cesium and TypeScript
-        const cesiumViewer = new Viewer(cesiumContainer.current, {
-            baseLayerPicker: false,
-            geocoder: false,
-            homeButton: false,
-            infoBox: false,
-            sceneModePicker: false,
-            selectionIndicator: false,
-            timeline: false,
-            animation: false,
-            navigationHelpButton: false,
-            fullscreenButton: false,
-        });
-
-        // Add default imagery layer after initialization to avoid TypeScript errors
-        // @ts-ignore - Using ts-ignore for Cesium API compatibility
-        cesiumViewer.imageryLayers.addImageryProvider(
-            // @ts-ignore - Using ts-ignore for Cesium API compatibility
-            new Cesium.TileMapServiceImageryProvider({
-                // @ts-ignore - Using ts-ignore for Cesium API compatibility
-                url: Cesium.buildModuleUrl('Assets/Textures/NaturalEarthII')
-            })
-        );
-
-        // Add terrain asynchronously after viewer is created
-        initTerrainPromise.then(terrainProvider => {
-            // @ts-ignore - Using ts-ignore for Cesium API compatibility
-            cesiumViewer.terrainProvider = terrainProvider;
-        });
-
-        // Try to add ion imagery if needed
+        // Create viewer with basic settings
         try {
-            // Replace default imagery with ion imagery
-            // @ts-ignore - Using ts-ignore for Cesium API compatibility
-            cesiumViewer.imageryLayers.addImageryProvider(
-                // @ts-ignore - Using ts-ignore for Cesium API compatibility
-                new Cesium.IonImageryProvider({ assetId: 3 }) // Sentinel-2 imagery
-            );
+            const cesiumViewer = new Viewer(cesiumContainer.current, {
+                shouldAnimate: true,
+                baseLayerPicker: false,
+                geocoder: false,
+                homeButton: false,
+                infoBox: false,
+                sceneModePicker: false,
+                selectionIndicator: false,
+                timeline: false,
+                animation: false,
+                navigationHelpButton: false,
+                fullscreenButton: false,
+            });
+
+            // Position camera to view Earth from a distance
+            cesiumViewer.camera.flyTo({
+                destination: Cartesian3.fromDegrees(0, 0, 20000000),
+                orientation: {
+                    heading: 0.0,
+                    pitch: -Math.PI / 2,
+                    roll: 0.0,
+                },
+            });
+
+            setViewer(cesiumViewer);
+            setIsLoaded(true);
+
+            // Cleanup
+            return () => {
+                if (cesiumViewer && !cesiumViewer.isDestroyed()) {
+                    cesiumViewer.destroy();
+                    setViewer(null);
+                }
+            };
         } catch (error) {
-            console.error('Failed to load ion imagery:', error);
+            console.error("Error initializing Cesium viewer:", error);
         }
-
-        // Configure the scene for better visuals
-        // @ts-ignore - Using ts-ignore for Cesium API compatibility
-        cesiumViewer.scene.globe.enableLighting = true;
-        // @ts-ignore - Using ts-ignore for Cesium API compatibility
-        cesiumViewer.scene.globe.showGroundAtmosphere = true;
-        // @ts-ignore - Using ts-ignore for Cesium API compatibility
-        cesiumViewer.scene.highDynamicRange = true;
-
-        // Add sky atmosphere manually
-        // @ts-ignore - Using ts-ignore for Cesium API compatibility
-        cesiumViewer.scene.skyAtmosphere = new Cesium.SkyAtmosphere();
-
-        // Configure atmosphere settings if available
-        // @ts-ignore - Using ts-ignore for Cesium API compatibility
-        if (cesiumViewer.scene.skyAtmosphere) {
-            // @ts-ignore - Using ts-ignore for Cesium API compatibility
-            cesiumViewer.scene.skyAtmosphere.hueShift = 0.0;
-            // @ts-ignore - Using ts-ignore for Cesium API compatibility
-            cesiumViewer.scene.skyAtmosphere.saturationShift = 0.1;
-            // @ts-ignore - Using ts-ignore for Cesium API compatibility
-            cesiumViewer.scene.skyAtmosphere.brightnessShift = 0.1;
-        }
-
-        // Position camera to view Earth
-        cesiumViewer.camera.flyTo({
-            destination: Cartesian3.fromDegrees(0, 0, 20000000),
-            orientation: {
-                heading: 0.0,
-                pitch: -Math.PI / 2,
-                roll: 0.0,
-            },
-        });
-
-        setViewer(cesiumViewer);
-        setIsLoaded(true);
-
-        // Cleanup
-        return () => {
-            if (cesiumViewer && !cesiumViewer.isDestroyed()) {
-                cesiumViewer.destroy();
-                setViewer(null);
-            }
-        };
     }, []);
 
     // Register custom materials once
@@ -215,11 +167,17 @@ const CesiumGlobe = ({
         // Clear previous entities
         viewer.entities.removeAll();
 
+        // Mock data if none provided
+        const mockPoints = dataPoints.length ? dataPoints : [
+            { id: '1', name: 'New York', lat: 40.7128, lng: -74.0060, category: 'pollution' as const, value: 75, timestamp: new Date().toISOString() },
+            { id: '2', name: 'London', lat: 51.5074, lng: -0.1278, category: 'pollution' as const, value: 60, timestamp: new Date().toISOString() },
+            { id: '3', name: 'Delhi', lat: 28.6139, lng: 77.2090, category: 'pollution' as const, value: 90, timestamp: new Date().toISOString() }
+        ];
+
         // Add data point entities
-        dataPoints.forEach((point) => {
+        mockPoints.forEach((point) => {
             // Choose color based on category
             let pointColor = Color.WHITE;
-            let pointScale = 1.0;
 
             switch (point.category) {
                 case 'pollution':
@@ -239,45 +197,17 @@ const CesiumGlobe = ({
                     break;
             }
 
-            // Scale by value (normalize between 0.5 and 2)
-            pointScale = 0.5 + (point.value / 100) * 1.5;
-
             // Create point entity
             viewer.entities.add({
                 id: point.id,
                 name: point.name,
                 position: Cartesian3.fromDegrees(point.lng, point.lat),
                 point: {
-                    pixelSize: 10 * pointScale,
+                    pixelSize: 10 * (0.5 + (point.value / 100)),
                     color: pointColor,
                     outlineColor: Color.WHITE,
                     outlineWidth: 2,
-                    disableDepthTestDistance: Number.POSITIVE_INFINITY, // Always show on top
-                },
-                billboard: {
-                    image: undefined, // Can add custom icons later
-                    scale: 1.0,
-                },
-            });
-
-            // Add pulsing effect ring using our custom material
-            viewer.entities.add({
-                position: Cartesian3.fromDegrees(point.lng, point.lat),
-                ellipse: {
-                    semiMinorAxis: 100000, // 100km
-                    semiMajorAxis: 100000,
-                    // @ts-ignore - Cesium Material is not assignable to MaterialProperty
-                    material: new Cesium.Material({
-                        fabric: {
-                            // @ts-ignore - Cesium types don't include custom material types
-                            type: Cesium.Material.PulsingEffectType,
-                            uniforms: {
-                                color: pointColor.withAlpha(0.3),
-                                speed: 1.0 + Math.random() * 0.5
-                            }
-                        }
-                    })
-                },
+                }
             });
         });
 
@@ -311,7 +241,7 @@ const CesiumGlobe = ({
                 style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
             />
 
-            {/* This component would need Cesium initialized in a global context */}
+            {/* Legend overlay */}
             <div className="absolute bottom-4 left-4 bg-slate-900/70 text-white p-3 rounded-lg backdrop-blur-sm text-sm z-10">
                 <h4 className="font-medium">EarthOS Modules Visualization</h4>
                 <div className="flex gap-3 mt-2">

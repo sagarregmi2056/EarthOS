@@ -1,30 +1,28 @@
 "use client";
 
-import { useState, useEffect, useRef } from 'react';
-import { Viewer, Entity, EntityDescription, Globe, Scene, Camera } from 'resium';
-import {
-    Cartesian3,
-    Color,
-    ScreenSpaceEventHandler,
-    ScreenSpaceEventType,
-    defined,
-    PinBuilder,
-    HeightReference,
-    Cartographic,
-    Math as CesiumMath
-} from 'cesium';
-import axios from 'axios';
-import PollutionLegend from './PollutionLegend';
-import TimeSlider from './TimeSlider';
+import { useState, useEffect } from 'react';
+import dynamic from 'next/dynamic';
+import LoadingSpinner from './LoadingSpinner';
 
-// Add window type extension for Cesium
-declare global {
-    interface Window {
-        CESIUM_BASE_URL: string;
+// Import CesiumGlobe with dynamic import to avoid SSR issues
+const CesiumGlobe = dynamic(
+    () => import('./CesiumGlobe'),
+    {
+        ssr: false,
+        loading: () => (
+            <div className="w-full h-full flex items-center justify-center bg-slate-900/80 backdrop-blur-sm">
+                <LoadingSpinner size="lg" message="Initializing 3D Globe..." />
+            </div>
+        )
     }
+);
+
+// Define GeoJSON interfaces
+export interface GeoJSONGeometry {
+    type: string;
+    coordinates: number[];
 }
 
-// Define the GeoJSON Feature and FeatureCollection interfaces
 export interface PollutionProperties {
     pm25: number;
     source: string;
@@ -33,83 +31,79 @@ export interface PollutionProperties {
 }
 
 export interface GeoJSONFeature {
-    type: 'Feature';
-    geometry: {
-        type: 'Point';
-        coordinates: [number, number]; // [longitude, latitude]
-    };
+    type: string;
+    geometry: GeoJSONGeometry;
     properties: PollutionProperties;
 }
 
 export interface GeoJSONFeatureCollection {
-    type: 'FeatureCollection';
+    type: string;
     features: GeoJSONFeature[];
 }
 
-const EarthGlobe = () => {
-    const [pollutionData, setPollutionData] = useState<GeoJSONFeature[]>([]);
-    const [selectedPoint, setSelectedPoint] = useState<GeoJSONFeature | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-    const [timeRange, setTimeRange] = useState(7); // Default: 7 days
-    const viewerRef = useRef<any>(null);
+// Define the DataPoint interface for Cesium
+export interface DataPoint {
+    id: string;
+    name: string;
+    lat: number;
+    lng: number;
+    category: 'pollution' | 'agriculture' | 'climate' | 'wildlife' | 'citizen';
+    value: number;
+    timestamp: string;
+}
 
-    // Function to determine color based on PM2.5 value
-    const getPollutionColor = (pm25: number) => {
-        if (pm25 > 150) return Color.RED;
-        if (pm25 > 50) return Color.YELLOW;
-        return Color.GREEN;
-    };
+// Convert GeoJSON features to data points for Cesium
+const convertToDataPoints = (features: GeoJSONFeature[]): DataPoint[] => {
+    return features.map(feature => {
+        const coords = feature.geometry.coordinates;
+        const pm25 = feature.properties.pm25;
 
-    // Initialize Cesium
-    useEffect(() => {
-        window.CESIUM_BASE_URL = '/cesium/';
-    }, []);
+        // Map PM2.5 values to categories and intensity
+        let category: 'pollution' | 'agriculture' | 'climate' = 'pollution';
 
-    // Fetch pollution data from the API
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                setIsLoading(true);
-                // For development/MVP, use mock endpoint
-                const response = await axios.get<GeoJSONFeatureCollection>('/api/pollution/mock');
-                setPollutionData(response.data.features);
-            } catch (err) {
-                setError('Failed to load pollution data');
-                console.error('Error fetching pollution data:', err);
-            } finally {
-                setIsLoading(false);
-            }
+        // Determine color based on PM2.5 levels
+        if (pm25 <= 12) {
+            category = 'agriculture'; // Use green
+        } else if (pm25 <= 35.4) {
+            category = 'climate'; // Use blue
+        } else {
+            category = 'pollution'; // Use red
+        }
+
+        return {
+            id: feature.properties.id,
+            name: `PM2.5: ${pm25}`,
+            lat: coords[1],
+            lng: coords[0],
+            category,
+            value: pm25,
+            timestamp: feature.properties.timestamp || new Date().toISOString()
         };
+    });
+};
 
-        fetchData();
-    }, [timeRange]);
+const EarthGlobe = ({
+    pollutionData = [],
+    onPointSelected = () => { }
+}: {
+    pollutionData?: GeoJSONFeature[],
+    onPointSelected?: (feature: GeoJSONFeature) => void
+}) => {
+    const [dataPoints, setDataPoints] = useState<DataPoint[]>([]);
 
-    // Use a simpler approach without some of the problematic Cesium components
+    // Convert GeoJSON to Cesium data points
+    useEffect(() => {
+        if (pollutionData && pollutionData.length > 0) {
+            setDataPoints(convertToDataPoints(pollutionData));
+        }
+    }, [pollutionData]);
+
     return (
-        <div className="relative w-full h-screen-90">
-            {error && (
-                <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-red-600 text-white px-4 py-2 rounded-lg z-20">
-                    {error}
-                </div>
-            )}
-
-            <div id="cesiumContainer" className="w-full h-full">
-                {/* Temporarily replace the complex Cesium implementation with a placeholder */}
-                <div className="flex items-center justify-center h-full bg-slate-800 text-white">
-                    <div className="text-center">
-                        <h2 className="text-2xl font-bold mb-4">3D Globe Visualization Temporarily Unavailable</h2>
-                        <p className="mb-4">We're experiencing some technical issues with the 3D globe.</p>
-                        <p>Please try the 2D view by clicking the toggle button in the top left.</p>
-                    </div>
-                </div>
-            </div>
-
-            {/* Pollution color legend */}
-            <PollutionLegend />
-
-            {/* Time range slider */}
-            <TimeSlider value={timeRange} onChange={setTimeRange} />
+        <div className="w-full h-full relative">
+            <CesiumGlobe
+                dataPoints={dataPoints}
+                showNodeConnections={false}
+            />
         </div>
     );
 };

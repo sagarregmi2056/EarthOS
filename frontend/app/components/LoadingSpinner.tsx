@@ -1,13 +1,30 @@
+"use client";
+
 import React from 'react';
 
-const LoadingSpinner: React.FC = () => {
+interface LoadingSpinnerProps {
+    size?: 'sm' | 'md' | 'lg';
+    message?: string;
+}
+
+const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
+    size = 'md',
+    message = 'Loading...'
+}) => {
+    const sizeClasses = {
+        sm: 'w-6 h-6 border-2',
+        md: 'w-10 h-10 border-3',
+        lg: 'w-16 h-16 border-4'
+    };
+
     return (
-        <div className="flex items-center justify-center h-full w-full bg-slate-900 bg-opacity-80">
-            <div className="flex flex-col items-center">
-                <div className="spinner"></div>
-                <p className="mt-4 text-white font-semibold text-lg">Loading Earth Data...</p>
-                <p className="text-gray-400 text-sm mt-2">Please wait while we gather pollution information</p>
-            </div>
+        <div className="flex flex-col items-center justify-center">
+            <div
+                className={`${sizeClasses[size]} border-t-blue-500 border-r-blue-300 border-b-blue-200 border-l-blue-400 rounded-full animate-spin`}
+            ></div>
+            {message && (
+                <p className="mt-4 text-slate-300 text-sm md:text-base font-medium">{message}</p>
+            )}
         </div>
     );
 };

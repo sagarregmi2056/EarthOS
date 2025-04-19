@@ -9,10 +9,11 @@
         "lint": "next lint"
     },
     "dependencies": {
+        "@cesium/engine": "^16.0.0",
         "@types/three": "^0.175.0",
         "autoprefixer": "^10.4.16",
         "axios": "^1.6.2",
-        "cesium": "^1.112.0",
+        "cesium": "^1.128.0",
         "date-fns": "^2.30.0",
         "leaflet": "^1.9.4",
         "next": "14.0.4",

@@ -15,13 +15,27 @@ import ModuleRoadmap from './components/ModuleRoadmap';
 // Dynamically import the map components with no SSR to avoid window issues
 const EarthGlobe = dynamic(
     () => import('./components/EarthGlobe'),
-    { ssr: false, loading: () => <LoadingSpinner /> }
+    {
+        ssr: false,
+        loading: () => (
+            <div className="w-full h-full flex items-center justify-center bg-slate-900/80 backdrop-blur-sm">
+                <LoadingSpinner size="lg" message="Loading 3D Globe..." />
+            </div>
+        )
+    }
 );
 
 // Import the SimpleMap component with no SSR
 const SimpleMap = dynamic(
     () => import('./components/SimpleMap'),
-    { ssr: false, loading: () => <div className="w-full h-full flex items-center justify-center bg-slate-900"><LoadingSpinner /></div> }
+    {
+        ssr: false,
+        loading: () => (
+            <div className="w-full h-full flex items-center justify-center bg-slate-900/80 backdrop-blur-sm">
+                <LoadingSpinner size="lg" message="Loading 2D Map..." />
+            </div>
+        )
+    }
 );
 
 // Mock data for initial rendering and fallback
@@ -365,29 +379,61 @@ export default function Home() {
                 </main>
             ) : (
                 // Map view
-                <main className="flex-grow relative">
-                    {/* Back to Home Button */}
-                    <div className="absolute top-5 left-5 z-40">
+                <main className="flex-grow relative pt-[105px]">
+                    {/* Map View Navigation - Move it down to avoid header overlap */}
+                    <div className="absolute top-20 left-5 z-40 flex flex-col gap-3 md:flex-row">
                         <button
                             onClick={() => setShowMap(false)}
-                            className="bg-slate-800 hover:bg-slate-700 text-white font-bold py-2 px-4 rounded-full shadow-lg transition-all mr-3"
+                            className="bg-slate-800/90 hover:bg-slate-700 text-white font-bold py-3 px-5 rounded-lg shadow-lg transition-all flex items-center border border-slate-700"
                         >
-                            ← Back to Home
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" />
+                            </svg>
+                            Back to Home
                         </button>
-                        <button
-                            onClick={() => setViewMode(viewMode === '3d' ? '2d' : '3d')}
-                            className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full shadow-lg transition-all"
-                        >
-                            {viewMode === '3d' ? 'Switch to 2D Map' : 'Try 3D Globe (Beta)'}
-                        </button>
+
+                        {/* Enhanced 2D/3D toggle tabs */}
+                        <div className="bg-slate-800/90 rounded-lg shadow-lg p-1.5 flex border border-slate-700">
+                            <button
+                                onClick={() => setViewMode('2d')}
+                                className={`py-2.5 px-5 rounded-md font-bold transition-all ${viewMode === '2d'
+                                    ? 'bg-blue-600 text-white shadow-md'
+                                    : 'text-slate-300 hover:text-white hover:bg-slate-700/50'
+                                    }`}
+                            >
+                                <span className="flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fillRule="evenodd" d="M12 1.586l-4 4v12.828l4-4V1.586zM3.707 3.293A1 1 0 002 4v10a1 1 0 00.293.707L6 18.414V5.586L3.707 3.293zM17.707 5.293L14 1.586v12.828l2.293 2.293A1 1 0 0018 16V6a1 1 0 00-.293-.707z" clipRule="evenodd" />
+                                    </svg>
+                                    2D Map
+                                </span>
+                            </button>
+                            <button
+                                onClick={() => setViewMode('3d')}
+                                className={`py-2.5 px-5 rounded-md font-bold transition-all ml-1 ${viewMode === '3d'
+                                    ? 'bg-blue-600 text-white shadow-md'
+                                    : 'text-slate-300 hover:text-white hover:bg-slate-700/50'
+                                    }`}
+                            >
+                                <span className="flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM4.332 8.027a6.012 6.012 0 011.912-2.706C6.512 5.73 6.974 6 7.5 6A1.5 1.5 0 019 7.5c0 .526-.27.987-.679 1.256a1.5 1.5 0 01-.869 2.179c-.264.535-.497.96-.962 1.27-.463.309-.812.609-1.036.989a1.5 1.5 0 01-2.664-1.386 1.5 1.5 0 01.379-1.561c.263-.18.572-.37.922-.58.35-.21.683-.43.968-.66a1.5 1.5 0 01.986-.276c.25.019.493.06.726.124a1.5 1.5 0 011.302-1.201c.239-.047.489-.06.742-.038.69.059.962.446.962.89 0 .412-.333.747-.741.748-.399.001-.741-.345-.741-.747 0-.058.011-.112.029-.164a.949.949 0 00-.407.021 1.5 1.5 0 01-1.152 1.235 1.5 1.5 0 01-1.739-1.264c-.035-.16-.055-.322-.055-.485a1.5 1.5 0 01-.943-.737c-.291.183-.581.495-.951.878L4.332 8.027zM10 15a5 5 0 100-10 5 5 0 000 10z" clipRule="evenodd" />
+                                    </svg>
+                                    3D Globe
+                                </span>
+                            </button>
+                        </div>
                     </div>
 
-                    {/* Map Container */}
-                    <div className="absolute inset-0">
+                    {/* Map Container - Adjust padding to ensure no overlap with header */}
+                    <div className="absolute inset-0 pt-[105px]">
                         <ErrorBoundary fallback={<div className="p-4 bg-red-800 text-white">Error loading the map. Please try again later.</div>}>
                             <Suspense fallback={<div className="w-full h-full flex items-center justify-center"><LoadingSpinner /></div>}>
                                 {viewMode === '3d' ? (
-                                    <EarthGlobe />
+                                    <EarthGlobe
+                                        pollutionData={pollutionData}
+                                        onPointSelected={handlePointSelected}
+                                    />
                                 ) : (
                                     <SimpleMap
                                         pollutionData={pollutionData}
@@ -398,19 +444,22 @@ export default function Home() {
                         </ErrorBoundary>
                     </div>
 
-                    {/* Report Pollution Button */}
-                    <div className="absolute bottom-5 right-5 z-20">
+                    {/* Report Pollution Button - Move to top right corner */}
+                    <div className="absolute top-20 right-5 z-20">
                         <button
                             onClick={() => setShowForm(!showForm)}
-                            className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full shadow-lg transition-all"
+                            className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-4 rounded-lg shadow-lg transition-all flex items-center"
                         >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
+                            </svg>
                             {showForm ? 'Close Form' : 'Report Pollution'}
                         </button>
                     </div>
 
                     {/* Pollution Reporting Form */}
                     {showForm && (
-                        <div className="absolute bottom-20 right-5 w-80 z-20">
+                        <div className="absolute top-32 right-5 w-80 z-20">
                             <PollutionForm onClose={() => setShowForm(false)} />
                         </div>
                     )}
