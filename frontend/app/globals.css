@@ -1,0 +1,240 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+    --foreground-rgb: 255, 255, 255;
+    --background-start-rgb: 15, 23, 42;
+    /* slate-900 */
+    --background-end-rgb: 30, 41, 59;
+    /* slate-800 */
+    --earth-blue: #3b82f6;
+    --earth-green: #10b981;
+    --header-height: 90px;
+    --footer-height: 56px;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html,
+body {
+    width: 100%;
+    height: 100%;
+    overflow-x: hidden;
+    color: rgb(var(--foreground-rgb));
+    background: var(--background-start-rgb);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+
+/* Container styles */
+.container {
+    width: 100%;
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 1rem;
+}
+
+/* Full height container */
+.h-screen-90 {
+    height: calc(100vh - var(--header-height) - var(--footer-height));
+}
+
+/* Main container */
+main {
+    min-height: calc(100vh - var(--header-height) - var(--footer-height));
+    position: relative;
+}
+
+/* Ensure map takes full height */
+.leaflet-container {
+    height: 100% !important;
+    width: 100% !important;
+    z-index: 1;
+}
+
+/* Custom popup styles */
+.leaflet-popup-content-wrapper {
+    border-radius: 8px;
+    padding: 10px;
+    box-shadow: 0 3px 14px rgba(0, 0, 0, 0.4);
+}
+
+.leaflet-popup-content {
+    margin: 8px;
+}
+
+.leaflet-popup-tip {
+    box-shadow: 0 3px 14px rgba(0, 0, 0, 0.4);
+}
+
+/* Pulsating effect for markers */
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+
+    50% {
+        transform: scale(1.2);
+        opacity: 0.8;
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.pulse-marker {
+    animation: pulse 1.5s infinite;
+}
+
+/* Custom colors */
+.bg-earth-blue {
+    background-color: var(--earth-blue);
+}
+
+.hover\:bg-blue-800:hover {
+    background-color: #1d4ed8;
+}
+
+/* Loading spinner */
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: var(--earth-blue);
+    animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Ensure Leaflet controls are visible */
+.leaflet-control-zoom {
+    margin-top: 70px !important;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3) !important;
+}
+
+.leaflet-control-attribution {
+    background-color: rgba(0, 0, 0, 0.5) !important;
+    color: white !important;
+}
+
+/* Custom legend styles */
+.legend {
+    background-color: rgba(0, 0, 0, 0.7) !important;
+    color: white !important;
+    padding: 10px !important;
+    border-radius: 5px !important;
+}
+
+/* Fix for marker positioning */
+.leaflet-marker-icon,
+.leaflet-marker-shadow {
+    transform-origin: center center !important;
+}
+
+/* Custom tooltip */
+.custom-tooltip {
+    background-color: rgba(0, 0, 0, 0.8);
+    border: 1px solid #fff;
+    padding: 5px 10px;
+    border-radius: 4px;
+    color: white;
+    font-size: 14px;
+}
+
+/* Ensure map controls are above marker popups */
+.leaflet-control {
+    z-index: 1000 !important;
+}
+
+/* Ensure markers take precedence over map controls */
+.leaflet-marker-pane {
+    z-index: 600 !important;
+}
+
+/* Make UI buttons more visible */
+.shadow-lg {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -4px rgba(0, 0, 0, 0.2);
+}
+
+/* Button hover effects */
+.hover\:scale-105:hover {
+    transform: scale(1.05);
+}
+
+.transition-all {
+    transition: all 0.3s ease;
+}
+
+/* Card styles */
+.rounded-lg {
+    border-radius: 0.5rem;
+}
+
+/* Fix for next.js app layout */
+#__next,
+main {
+    min-height: 100%;
+}
+
+/* 3D Globe container */
+canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+/* Improved text contrast */
+.text-blue-400 {
+    color: #60a5fa;
+    /* Brighter blue for better contrast */
+}
+
+.text-gray-300 {
+    color: #d1d5db;
+    /* Lighter gray for better readability */
+}
+
+/* Fix for flexbox in safari */
+.flex {
+    display: flex;
+}
+
+.flex-col {
+    flex-direction: column;
+}
+
+/* Add spacing utilities */
+.space-y-4>*+* {
+    margin-top: 1rem;
+}
+
+.space-x-4>*+* {
+    margin-left: 1rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .container {
+        padding: 0 1.5rem;
+    }
+
+    .md\:flex-row {
+        flex-direction: column;
+    }
+
+    .md\:w-1\/2 {
+        width: 100%;
+    }
+}
