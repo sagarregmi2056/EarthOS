@@ -245,8 +245,8 @@ export default function Home() {
             <Header />
 
             {!showMap ? (
-                // Landing page content
-                <main className="flex-grow">
+                // Landing page content with padding to account for fixed header
+                <main className="flex-grow pt-[105px]">
                     <HeroSection />
 
                     {/* Statistics Section */}
