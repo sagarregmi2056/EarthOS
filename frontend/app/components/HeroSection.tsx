@@ -27,7 +27,7 @@ const DataFlowLines = () => {
     );
 };
 
-// Module navigation component - simpler vertical menu matching the screenshot
+// Module navigation component - moved to the right side
 const ModuleNavigation = () => {
     const [activeModule, setActiveModule] = useState<string | null>(null);
 
@@ -42,7 +42,7 @@ const ModuleNavigation = () => {
     ];
 
     return (
-        <div className="absolute top-24 left-4 z-30">
+        <div className="absolute top-24 right-4 z-30">
             <div className="flex flex-col gap-4">
                 {modules.map((module) => (
                     <button
@@ -57,7 +57,7 @@ const ModuleNavigation = () => {
             </div>
 
             {activeModule && (
-                <div className="mt-3 bg-slate-800/90 backdrop-blur-sm p-4 rounded-lg shadow-lg max-w-xs ml-6">
+                <div className="mt-3 bg-slate-800/90 backdrop-blur-sm p-4 rounded-lg shadow-lg max-w-xs mr-6">
                     <h3 className="text-white font-bold mb-2">
                         {modules.find(m => m.id === activeModule)?.name}
                     </h3>
@@ -101,10 +101,10 @@ const HeroSection = () => {
                 <Globe3D />
             </div>
 
-            {/* Module Navigation System */}
+            {/* Module Navigation System - Now on the right */}
             <ModuleNavigation />
 
-            {/* Content overlay */}
+            {/* Content overlay - Adjusted to accommodate right-side navigation */}
             <div className="relative z-20 container mx-auto h-full flex flex-col justify-center px-6 lg:px-16">
                 <div className={`max-w-3xl transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
                     {/* Headline */}
