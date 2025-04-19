@@ -108,7 +108,7 @@ const HeroSection = () => {
             <div className="relative z-20 container mx-auto h-full flex flex-col justify-center px-6 lg:px-16">
                 <div className={`max-w-3xl transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
                     {/* Headline */}
-                    <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-4">
+                    <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4">
                         <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-400 via-blue-500 to-purple-600">
                             EarthOS:
                         </span> <br />
@@ -116,7 +116,7 @@ const HeroSection = () => {
                     </h1>
 
                     {/* Subheadline */}
-                    <h2 className="text-xl md:text-2xl text-slate-300 mb-6">
+                    <h2 className="text-xl md:text-xl text-slate-300 mb-6">
                         Monitor, optimize, and collaborate globally with real-time, decentralized data and AI-driven insights.
                     </h2>
 
