@@ -430,7 +430,7 @@ export default function Home() {
                             <a href="#" className="text-gray-400 hover:text-blue-400 transition-colors">Privacy Policy</a>
                             <a href="#" className="text-gray-400 hover:text-blue-400 transition-colors">Terms of Service</a>
                             <a href="#" className="text-gray-400 hover:text-blue-400 transition-colors">Contact</a>
-                            <a href="https://github.com/yourusername/earthos" className="text-gray-400 hover:text-blue-400 transition-colors">GitHub</a>
+                            <a href="https://github.com/sagarregmi2056/earthos" className="text-gray-400 hover:text-blue-400 transition-colors">GitHub</a>
                         </div>
                     </div>
                 </div>
