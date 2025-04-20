@@ -1,5 +1,6 @@
 const path = require('path');
 const webpack = require('webpack');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -25,6 +26,23 @@ const nextConfig = {
         },
       ],
     });
+
+    // Copy Cesium Assets to public folder
+    if (!isServer) {
+      config.plugins.push(
+        new CopyWebpackPlugin({
+          patterns: [
+            {
+              from: path.join(
+                path.dirname(require.resolve('cesium')),
+                'Build/Cesium'
+              ),
+              to: 'public/cesium'
+            }
+          ]
+        })
+      );
+    }
 
     return config;
   },

@@ -26,6 +26,60 @@ interface PulseObject extends THREE.Object3D {
 
 const Globe3D = () => {
     const mountRef = useRef<HTMLDivElement>(null);
+    const starsRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        // Create background stars
+        if (starsRef.current) {
+            // Clear any existing stars
+            starsRef.current.innerHTML = '';
+
+            // Create star elements
+            const starCount = 200;
+            for (let i = 0; i < starCount; i++) {
+                const star = document.createElement('div');
+
+                // Random position
+                const top = Math.random() * 100;
+                const left = Math.random() * 100;
+
+                // Random size (0.5px to 2px)
+                const size = Math.random() * 1.5 + 0.5;
+
+                // Random opacity (0.3 to 1)
+                const opacity = Math.random() * 0.7 + 0.3;
+
+                // Random animation delay
+                const delay = Math.random() * 5;
+
+                // Determine star color (mostly white with some colored stars)
+                const colorRoll = Math.random();
+                let color = '#FFFFFF'; // Default white
+
+                if (colorRoll > 0.95) {
+                    color = '#8CAAFF'; // Bluish
+                } else if (colorRoll > 0.9) {
+                    color = '#FFD28C'; // Yellowish
+                } else if (colorRoll > 0.85) {
+                    color = '#FF8C8C'; // Reddish
+                }
+
+                // Apply styles
+                star.style.position = 'absolute';
+                star.style.top = `${top}%`;
+                star.style.left = `${left}%`;
+                star.style.width = `${size}px`;
+                star.style.height = `${size}px`;
+                star.style.backgroundColor = color;
+                star.style.borderRadius = '50%';
+                star.style.opacity = opacity.toString();
+                star.style.animation = `twinkling ${Math.random() * 3 + 2}s infinite ease-in-out ${delay}s`;
+                star.style.zIndex = '1';
+
+                starsRef.current.appendChild(star);
+            }
+        }
+    }, []);
 
     useEffect(() => {
         if (!mountRef.current || typeof window === 'undefined') return;
@@ -533,7 +587,35 @@ const Globe3D = () => {
         };
     }, []);
 
-    return <div ref={mountRef} className="w-full h-full min-h-[500px]" />;
+    return (
+        <div className="relative w-full h-full min-h-[500px]">
+            {/* Background stars container */}
+            <div
+                ref={starsRef}
+                className="absolute inset-0 overflow-hidden z-0"
+            />
+
+            {/* CSS for twinkling animation */}
+            <style jsx>{`
+                @keyframes twinkling {
+                    0%, 100% {
+                        opacity: 0.3;
+                        transform: scale(1);
+                    }
+                    50% {
+                        opacity: 1;
+                        transform: scale(1.2);
+                    }
+                }
+            `}</style>
+
+            {/* Three.js container */}
+            <div
+                ref={mountRef}
+                className="absolute inset-0 z-10"
+            />
+        </div>
+    );
 };
 
 export default Globe3D; 
