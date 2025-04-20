@@ -58,7 +58,7 @@ const Globe3D = () => {
                 75,
                 width / height,
                 0.1,
-                1000
+                2000
             );
             camera.position.z = 200;
 
@@ -138,24 +138,180 @@ const Globe3D = () => {
             const atmosphere = new THREE.Mesh(atmosphereGeometry, atmosphereMaterial);
             scene.add(atmosphere);
 
-            // Add stars
+            // Add stars with varying sizes and brightness
             const starGeometry = new THREE.BufferGeometry();
-            const starMaterial = new THREE.PointsMaterial({
-                color: 0xffffff,
-                size: 1,
-            });
+            const starCount = 8000;
+            const starPositions = [];
+            const starSizes = [];
+            const starColors = [];
 
-            const starVertices = [];
-            for (let i = 0; i < 5000; i++) {
+            for (let i = 0; i < starCount; i++) {
                 const x = (Math.random() - 0.5) * 2000;
                 const y = (Math.random() - 0.5) * 2000;
                 const z = (Math.random() - 0.5) * 2000;
-                starVertices.push(x, y, z);
+                starPositions.push(x, y, z);
+
+                // Vary star sizes between 0.5 and 2
+                const size = Math.random() * 1.5 + 0.5;
+                starSizes.push(size);
+
+                // Vary star colors from blue-white to yellow-white
+                const color = new THREE.Color();
+                const temperature = Math.random();
+                if (temperature > 0.95) {
+                    // Blue-white hot stars (rare)
+                    color.setRGB(0.8, 0.9, 1);
+                } else if (temperature > 0.8) {
+                    // White stars
+                    color.setRGB(1, 1, 1);
+                } else if (temperature > 0.5) {
+                    // Yellow-white stars
+                    color.setRGB(1, 0.9, 0.7);
+                } else {
+                    // Reddish stars
+                    color.setRGB(1, 0.8, 0.6);
+                }
+                starColors.push(color.r, color.g, color.b);
             }
 
-            starGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starVertices, 3));
+            starGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starPositions, 3));
+            starGeometry.setAttribute('size', new THREE.Float32BufferAttribute(starSizes, 1));
+            starGeometry.setAttribute('color', new THREE.Float32BufferAttribute(starColors, 3));
+
+            // Custom shader material for stars with varying sizes and colors
+            const starMaterial = new THREE.ShaderMaterial({
+                uniforms: {
+                    pointTexture: { value: new THREE.TextureLoader().load('/images/star.png', () => { }, () => { }) }
+                },
+                vertexShader: `
+                    attribute float size;
+                    attribute vec3 color;
+                    varying vec3 vColor;
+                    void main() {
+                        vColor = color;
+                        vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+                        gl_PointSize = size * (300.0 / -mvPosition.z);
+                        gl_Position = projectionMatrix * mvPosition;
+                    }
+                `,
+                fragmentShader: `
+                    uniform sampler2D pointTexture;
+                    varying vec3 vColor;
+                    void main() {
+                        gl_FragColor = vec4(vColor, 1.0);
+                        gl_FragColor = gl_FragColor * texture2D(pointTexture, gl_PointCoord);
+                    }
+                `,
+                blending: THREE.AdditiveBlending,
+                depthTest: true,
+                transparent: true,
+                vertexColors: true
+            });
+
             const stars = new THREE.Points(starGeometry, starMaterial);
             scene.add(stars);
+
+            // Add Milky Way galaxy effect
+            const galaxyGeometry = new THREE.BufferGeometry();
+            const galaxyParticles = 100000;
+            const galaxyPositions = [];
+            const galaxySizes = [];
+            const galaxyColors = [];
+            const galaxySpiral = 5; // Number of spiral arms
+
+            for (let i = 0; i < galaxyParticles; i++) {
+                // Create spiral galaxy pattern
+                const armAngle = (i % galaxySpiral) * Math.PI * 2 / galaxySpiral;
+                const randomRadius = Math.pow(Math.random(), 0.5) * 800 + 400; // Between 400 and 1200
+                const spinAngle = randomRadius * 0.0005; // Tighter spiral for larger radius
+                const finalAngle = armAngle + spinAngle;
+
+                const x = Math.cos(finalAngle) * randomRadius;
+                const z = Math.sin(finalAngle) * randomRadius;
+
+                // Add some height variation for the galaxy (thinner at edges)
+                const heightVariation = (1 - randomRadius / 1200) * 60; // Thinner at edges
+                const y = (Math.random() - 0.5) * heightVariation;
+
+                // Add random scatter around the spiral arms
+                const scatter = 40 + (randomRadius * 0.1);
+                const scatterX = (Math.random() - 0.5) * scatter;
+                const scatterZ = (Math.random() - 0.5) * scatter;
+
+                galaxyPositions.push(x + scatterX, y, z + scatterZ);
+
+                // Center of galaxy has more larger/brighter stars
+                const distanceFromCenter = Math.sqrt(x * x + z * z);
+                const sizeBasedOnPosition = Math.max(0.1, 1.2 - distanceFromCenter / 1200);
+                const size = Math.random() * sizeBasedOnPosition + 0.2;
+                galaxySizes.push(size);
+
+                // Color varies by distance from center and which arm
+                const color = new THREE.Color();
+                const armIndex = i % galaxySpiral;
+
+                // Core is more yellowish-white, edges more blue-purplish
+                if (distanceFromCenter < 500) {
+                    // Core - whiter/yellowish
+                    const mix = distanceFromCenter / 500;
+                    color.setRGB(
+                        0.9 + mix * 0.1,
+                        0.9,
+                        0.7 + mix * 0.3
+                    );
+                } else {
+                    // Arms - more blue/purple tints in different arms
+                    switch (armIndex) {
+                        case 0: color.setRGB(0.8, 0.8, 1.0); break; // Blueish
+                        case 1: color.setRGB(1.0, 0.8, 1.0); break; // Purplish
+                        case 2: color.setRGB(0.8, 0.9, 1.0); break; // Light blue
+                        case 3: color.setRGB(0.9, 0.8, 0.9); break; // Light purple
+                        default: color.setRGB(0.9, 0.9, 1.0); break; // Light blue-white
+                    }
+                }
+
+                galaxyColors.push(color.r, color.g, color.b);
+            }
+
+            galaxyGeometry.setAttribute('position', new THREE.Float32BufferAttribute(galaxyPositions, 3));
+            galaxyGeometry.setAttribute('size', new THREE.Float32BufferAttribute(galaxySizes, 1));
+            galaxyGeometry.setAttribute('color', new THREE.Float32BufferAttribute(galaxyColors, 3));
+
+            // Similar shader material for galaxy with slight modifications
+            const galaxyMaterial = new THREE.ShaderMaterial({
+                uniforms: {
+                    pointTexture: { value: new THREE.TextureLoader().load('/images/star.png', () => { }, () => { }) }
+                },
+                vertexShader: `
+                    attribute float size;
+                    attribute vec3 color;
+                    varying vec3 vColor;
+                    void main() {
+                        vColor = color;
+                        vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+                        gl_PointSize = size * (300.0 / -mvPosition.z);
+                        gl_Position = projectionMatrix * mvPosition;
+                    }
+                `,
+                fragmentShader: `
+                    uniform sampler2D pointTexture;
+                    varying vec3 vColor;
+                    void main() {
+                        gl_FragColor = vec4(vColor, 0.8);
+                        gl_FragColor = gl_FragColor * texture2D(pointTexture, gl_PointCoord);
+                    }
+                `,
+                blending: THREE.AdditiveBlending,
+                depthTest: false, // Allow galaxy to render through other objects
+                transparent: true,
+                vertexColors: true
+            });
+
+            const galaxy = new THREE.Points(galaxyGeometry, galaxyMaterial);
+            // Position the galaxy in the background
+            galaxy.position.z = -1000;
+            galaxy.rotation.x = Math.PI / 6; // Tilt the galaxy to show the spiral pattern
+            scene.add(galaxy);
 
             // Add OrbitControls if available
             let controls = null;
@@ -241,6 +397,25 @@ const Globe3D = () => {
                 globe.rotation.y += 0.001;
                 atmosphere.rotation.y += 0.001;
 
+                // Very slowly rotate the galaxy
+                if (galaxy) {
+                    galaxy.rotation.z += 0.0001;
+                }
+
+                // Animate stars to twinkle slightly
+                if (stars && stars.material instanceof THREE.ShaderMaterial) {
+                    const time = Date.now() * 0.0005;
+                    const sizes = starGeometry.attributes.size.array;
+
+                    for (let i = 0; i < starCount; i++) {
+                        // Make each star twinkle at a slightly different rate
+                        const twinkle = Math.sin(time + i * 0.1) * 0.2 + 0.8;
+                        sizes[i] = (Math.random() * 1.5 + 0.5) * twinkle;
+                    }
+
+                    starGeometry.attributes.size.needsUpdate = true;
+                }
+
                 // Animate pulse
                 scene.children.forEach((child: THREE.Object3D) => {
                     const typedChild = child as PulseObject;
@@ -274,7 +449,15 @@ const Globe3D = () => {
                 atmosphereGeometry.dispose();
                 atmosphereMaterial.dispose();
                 starGeometry.dispose();
-                starMaterial.dispose();
+                if (stars.material instanceof THREE.ShaderMaterial) {
+                    stars.material.dispose();
+                }
+                if (galaxy) {
+                    galaxyGeometry.dispose();
+                    if (galaxy.material instanceof THREE.ShaderMaterial) {
+                        galaxy.material.dispose();
+                    }
+                }
                 renderer.dispose();
             };
         };
