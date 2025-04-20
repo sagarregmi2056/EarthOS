@@ -30,6 +30,21 @@ const DataFlowLines = () => {
 // Module navigation component - moved to the right side
 const ModuleNavigation = () => {
     const [activeModule, setActiveModule] = useState<string | null>(null);
+    // Check if we're on a mobile device using window width
+    const [isMobile, setIsMobile] = useState(false);
+
+    useEffect(() => {
+        const checkMobile = () => {
+            setIsMobile(window.innerWidth < 768);
+        };
+
+        // Check on initial load
+        checkMobile();
+
+        // Add resize listener
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
 
     const modules = [
         { id: 'pollutrack', name: 'PolluTrack', color: 'bg-red-500', icon: 'waves' },
@@ -42,26 +57,27 @@ const ModuleNavigation = () => {
     ];
 
     return (
-        <div className="absolute top-24 right-4 z-30">
-            <div className="flex flex-col gap-4">
+        <div className={`absolute ${isMobile ? 'top-2 right-2 z-40' : 'top-24 right-4 z-30'}`}>
+            <div className={`${isMobile ? 'px-2 py-2 bg-slate-900/80 backdrop-blur-sm rounded-lg' : ''} flex flex-col gap-2`}>
                 {modules.map((module) => (
                     <button
                         key={module.id}
-                        className="flex items-center gap-3 hover:bg-slate-800/50 rounded-lg transition-all px-3 py-2"
+                        className={`flex items-center gap-2 hover:bg-slate-800/50 rounded-lg transition-all ${isMobile ? 'px-2 py-1.5 text-sm' : 'px-3 py-2'}`}
                         onClick={() => setActiveModule(module.id === activeModule ? null : module.id)}
                     >
-                        <span className={`w-3 h-3 rounded-full ${module.color}`}></span>
-                        <span className="text-white font-medium">{module.name}</span>
+                        <span className={`${isMobile ? 'w-2 h-2' : 'w-3 h-3'} rounded-full ${module.color} flex-shrink-0`}></span>
+                        {!isMobile && <span className="text-white font-medium whitespace-nowrap">{module.name}</span>}
+                        {isMobile && <span className="text-white font-medium truncate max-w-[80px]">{module.name}</span>}
                     </button>
                 ))}
             </div>
 
             {activeModule && (
-                <div className="mt-3 bg-slate-800/90 backdrop-blur-sm p-4 rounded-lg shadow-lg max-w-xs mr-6">
-                    <h3 className="text-white font-bold mb-2">
+                <div className={`mt-2 bg-slate-800/90 backdrop-blur-sm p-3 rounded-lg shadow-lg ${isMobile ? 'max-w-[250px] absolute right-0' : 'max-w-xs mr-6'}`}>
+                    <h3 className="text-white font-bold mb-1 text-sm">
                         {modules.find(m => m.id === activeModule)?.name}
                     </h3>
-                    <p className="text-slate-300 text-sm">
+                    <p className={`text-slate-300 ${isMobile ? 'text-xs' : 'text-sm'}`}>
                         {activeModule === 'pollutrack' && 'Real-time air/water pollution tracking using IoT sensors and satellite data.'}
                         {activeModule === 'agriai' && 'Crop health monitoring, rainfall prediction, and pest warnings for farmers.'}
                         {activeModule === 'ecowatch' && 'Wildlife tracking via satellites, drones, and ground sensors.'}
@@ -78,14 +94,30 @@ const ModuleNavigation = () => {
 
 const HeroSection = () => {
     const [isVisible, setIsVisible] = useState(false);
+    // Check if we're on a mobile device
+    const [isMobile, setIsMobile] = useState(false);
 
     useEffect(() => {
+        // Check for mobile
+        const checkMobile = () => {
+            setIsMobile(window.innerWidth < 768);
+        };
+
+        // Check on initial load
+        checkMobile();
+
+        // Add resize listener
+        window.addEventListener('resize', checkMobile);
+
         // Add a small delay for initial animation
         const timer = setTimeout(() => {
             setIsVisible(true);
         }, 200);
 
-        return () => clearTimeout(timer);
+        return () => {
+            clearTimeout(timer);
+            window.removeEventListener('resize', checkMobile);
+        };
     }, []);
 
     return (
@@ -105,10 +137,10 @@ const HeroSection = () => {
             <ModuleNavigation />
 
             {/* Content overlay - Adjusted to accommodate right-side navigation */}
-            <div className="relative z-20 container mx-auto h-full flex flex-col justify-center px-6 lg:px-16">
+            <div className="relative z-20 container mx-auto h-full flex flex-col justify-center px-4 md:px-6 lg:px-16">
                 <div className={`max-w-3xl transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
                     {/* Headline */}
-                    <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4">
+                    <h1 className={`${isMobile ? 'text-2xl' : 'text-3xl sm:text-4xl md:text-5xl'} font-bold text-white mb-4`}>
                         <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-400 via-blue-500 to-purple-600">
                             EarthOS:
                         </span> <br />
@@ -116,26 +148,26 @@ const HeroSection = () => {
                     </h1>
 
                     {/* Subheadline */}
-                    <h2 className="text-xl md:text-xl text-slate-300 mb-6">
+                    <h2 className={`${isMobile ? 'text-lg' : 'text-xl md:text-xl'} text-slate-300 mb-4 md:mb-6`}>
                         Monitor, optimize, and collaborate globally with real-time, decentralized data and AI-driven insights.
                     </h2>
 
                     {/* Description */}
-                    <p className="text-slate-400 mb-8 max-w-2xl">
+                    <p className="text-slate-400 mb-6 md:mb-8 max-w-2xl text-sm md:text-base">
                         EarthOS is an open-source, decentralized platform empowering humanity with a real-time "HUD" to track pollution, climate, wildlife, and more. Built on IPFS and governed by a DAO, it unites citizens, scientists, and governments in a transparent, community-driven mission for a sustainable future.
                     </p>
 
                     {/* Call to action buttons */}
-                    <div className="flex flex-col sm:flex-row gap-4">
+                    <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
                         <Link
                             href="/explore"
-                            className="px-8 py-3 text-white bg-gradient-to-r from-teal-500 to-blue-600 rounded-full font-medium hover:shadow-lg hover:shadow-blue-500/20 transition-all duration-300"
+                            className="px-6 md:px-8 py-2 md:py-3 text-sm md:text-base text-white bg-gradient-to-r from-teal-500 to-blue-600 rounded-full font-medium hover:shadow-lg hover:shadow-blue-500/20 transition-all duration-300"
                         >
                             Explore EarthOS Now
                         </Link>
                         <Link
                             href="/community"
-                            className="px-8 py-3 text-white bg-slate-800 border border-slate-700 rounded-full font-medium hover:bg-slate-700 transition-all duration-300"
+                            className="px-6 md:px-8 py-2 md:py-3 text-sm md:text-base text-white bg-slate-800 border border-slate-700 rounded-full font-medium hover:bg-slate-700 transition-all duration-300"
                         >
                             Join the Decentralized Community
                         </Link>
